@@ -1,0 +1,76 @@
+"""
+Simple Snow File Converter
+===========================
+Converts one snow dataset at a time
+"""
+
+import xarray as xr
+import pandas as pd
+import sys
+
+def convert_snow_simple(folder_name, output_csv):
+    """Convert snow data from folder"""
+    print(f"Converting {folder_name}...")
+    
+    try:
+        # Load files
+        accum_file = f"{folder_name}/data_stream-oper_stepType-accum.nc"
+        instant_file = f"{folder_name}/data_stream-oper_stepType-instant.nc"
+        
+        print("  Loading precipitation data...")
+        ds_precip = xr.open_dataset(accum_file)
+        
+        print("  Loading temperature data...")
+        ds_temp = xr.open_dataset(instant_file)
+        
+        print("  Extracting precipitation...")
+        precip = ds_precip['tp'].values.flatten()
+        
+        print("  Extracting temperature...")
+        temp = ds_temp['t2m'].values.flatten()
+        
+        print("  Extracting time...")
+        time = ds_precip['valid_time'].values
+        
+        print("  Creating DataFrame...")
+        # Make sure arrays are same length
+        min_len = min(len(time), len(precip), len(temp))
+        
+        df = pd.DataFrame({
+            'time': time[:min_len],
+            'precipitation_inches': precip[:min_len] * 39.37,
+            'temperature_c': temp[:min_len] - 273.15
+        })
+        
+        df['is_snow'] = df['temperature_c'] < 0
+        
+        print("  Saving CSV...")
+        df.to_csv(output_csv, index=False)
+        
+        print(f"  ✓ Success! Created {output_csv}")
+        print(f"    Rows: {len(df)}")
+        print(f"    Total precipitation: {df['precipitation_inches'].sum():.2f} inches")
+        print(f"    Snow hours: {df['is_snow'].sum()}")
+        
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    print("="*70)
+    print("Simple Snow File Converter")
+    print("="*70)
+    print()
+    
+    # Convert NY_SNOW_ERA
+    convert_snow_simple('NY_SNOW_ERA.nc', 'NY_SNOW_ERA.csv')
+    print()
+    
+    # Convert NY_SSNOW_ERA
+    convert_snow_simple('NY_SSNOW_ERA.nc', 'NY_SSNOW_ERA.csv')
+    print()
+    
+    print("="*70)
+    print("Done!")
+    print("="*70)
