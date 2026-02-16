@@ -1,0 +1,5 @@
+Source,Brier_Score,Rank,Better_Than_Random,Pct_vs_Random,Kenneth_Walker_Price
+Kalshi Market,0.025,1,Yes,90.0,9.0
+Sharp Football,0.0367,2,Yes,85.3,N/A
+NFL.com,0.0671,3,Yes,73.16,N/A
+CBS Sports,0.13,4,Yes,48.02,14.29
